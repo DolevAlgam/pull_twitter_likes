@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  twitter-likes-fetcher:
+    build: .
+    container_name: twitter-likes-fetcher
+    restart: always
+    environment:
+      # OAuth 1.0a credentials (set these in .env file or override)
+      - CONSUMER_KEY=${CONSUMER_KEY}
+      - CONSUMER_SECRET=${CONSUMER_SECRET}
+      - ACCESS_TOKEN=${ACCESS_TOKEN}
+      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+      
+      # Tweet configuration
+      - TWEET_ID=${TWEET_ID}
+      
+      # Storage configuration
+      - DB_PATH=/data/state.db
+      - OUT_DIR=/data
+      - EXPORT_EVERY_SECS=300
+      - EXPORT_MODE=${EXPORT_MODE:-final}
+      
+      # Optional S3 upload
+      - S3_URI=${S3_URI:-}
+    volumes:
+      - /var/lib/x-likers:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sqlite3; conn = sqlite3.connect('/data/state.db'); conn.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
